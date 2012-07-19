@@ -94,7 +94,7 @@ window.QUnitMock = {
 
 window.test = (args...) ->
   for arg, i in args
-    args[i] = mocked(arg) if $.isFunction(arg)
+    args[i] = mocked(arg) if typeof arg == 'function'
   
   QUnit.test.apply(this, args)
   
