@@ -30,7 +30,7 @@ class Expectation
     @calledWith = []
 
   isCallback : () ->
-    @object == null
+    @object == undefined
 
   with : (args...)->
     @expectedArgs = args
