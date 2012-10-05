@@ -73,7 +73,7 @@ mock = (test) ->
   mocking = mk
   stack.push(mk)
   
-  test()
+  test.call(QUnit.current_testEnvironment)
   
   unless QUnit.config.blocking
     finishMock()
