@@ -115,7 +115,7 @@ window.test = (args...) ->
   for arg, i in args
     args[i] = mocked(arg) if typeof arg == 'function'
   
-  QUnit.test.apply(this, args)
+  QUnit.test.apply(QUnit.current_testEnvironment, args)
   
 window.asyncTest = (testName, expected, callback) ->
   if arguments.length == 2
