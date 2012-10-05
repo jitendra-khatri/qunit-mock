@@ -29,30 +29,53 @@ class Expectation
     )
     @calledWith = []
 
+  isCallback : () ->
+    @object == undefined
+
   with : (args...)->
     @expectedArgs = args
+    @
+
+  calls : (calls)->
+    @expectedCalls = calls
+    @
+
+  undo : ()->
+    if @object?
+      @object[@method] = @originalMethod
 
 
 expectCall = (object, method, calls) ->
   calls ?= 1
-  
+
   expectation = new Expectation({
-    object: object
-    method: method
     expectedCalls: calls
-    originalMethod: object[method]
     callCount: 0
   })
-  
-  object[method] = (args...) ->
-    expectation.originalMethod.apply(object, args)
+
+  mock = (args...) ->
+    if expectation.originalMethod
+      expectation.originalMethod.apply(object, args)
     expectation.callCount += 1
     expectation.calledWith.push(args)
-  
+
   mocking.expectations.push(expectation)
-  expectation
+  
+  if arguments.length
+    expectation.originalMethod = object[method]
+    expectation.object =  object
+    expectation.method = method
+    object[method] = mock
+    return expectation
+
+  mock
 
 stub = (object, method, fn) ->
+  if typeof fn != 'function'
+    retur = fn;
+    fn = () -> retur
+    
+
   stb = {
     object: object,
     method: method,
@@ -73,7 +96,7 @@ mock = (test) ->
   mocking = mk
   stack.push(mk)
   
-  test()
+  test.call(QUnit.current_testEnvironment)
   
   unless QUnit.config.blocking
     finishMock()
@@ -92,13 +115,18 @@ finishMock = () ->
 testExpectations = ->
   while mocking.expectations.length > 0
     expectation = mocking.expectations.pop()
-    equal(expectation.callCount, expectation.expectedCalls, "method #{expectation.method} should be called #{expectation.expectedCalls} times")
+
+    if expectation.isCallback()
+      equal(expectation.callCount, expectation.expectedCalls, "callback should have been called #{expectation.expectedCalls} times")
+    else
+      equal(expectation.callCount, expectation.expectedCalls, "method #{expectation.method} should be called #{expectation.expectedCalls} times")
+      expectation.undo();
+
     if expectation.expectedArgs
       $.each(expectation.calledWith, (i, el)->
         deepEqual(expectation.expectedArgs, el, "expected to be called with #{expectation.expectedArgs}, called with #{el}")
       )
-    expectation.object[expectation.method] = expectation.originalMethod
-  
+
   while mocking.stubs.length > 0
     stb = mocking.stubs.pop()
     stb.object[stb.method] = stb.original
@@ -115,7 +143,7 @@ window.test = (args...) ->
   for arg, i in args
     args[i] = mocked(arg) if typeof arg == 'function'
   
-  QUnit.test.apply(this, args)
+  QUnit.test.apply(QUnit.current_testEnvironment, args)
   
 window.asyncTest = (testName, expected, callback) ->
   if arguments.length == 2

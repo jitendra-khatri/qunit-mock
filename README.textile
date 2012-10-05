@@ -22,7 +22,12 @@ MyClass.prototype = {
   methodThree: function() {
     this.methodTwo();
     this.methodTwo();
+  },
+
+  load:function(onComplete){
+    onComplete();
   }
+
 };
 
 test("calls second method on first", function() {
@@ -33,8 +38,16 @@ test("calls second method on first", function() {
 
 test("calls second method two times on third", function() {
   obj = new MyClass();
-  expectCall(obj, "methodTwo", 2); // this time saying number of expect calls
+  expectCall(obj, "methodTwo").calls(2); // this time saying number of expect calls
   obj.methodThree();
+});
+
+test("callback is called", function(){
+  callback = expectCall();
+
+  obj = new MyClass();
+
+  obj.load(callback);
 });
 
 p. At end of test it will automatic check if the method is called and will test it.
@@ -53,6 +66,11 @@ obj = new MyClass();
 
 test("stubbing method", function() {
   stub(obj, "someMethod", function() { return "world" });
+  equal(obj.someMethod(), "world"); // ok, will pass
+});
+
+test("stubbing method easier", function(){
+  stub(obj, "someMethod", "world"); //can also pass return value
   equal(obj.someMethod(), "world"); // ok, will pass
 });
 
