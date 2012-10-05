@@ -29,30 +29,47 @@ class Expectation
     )
     @calledWith = []
 
+  isCallback : () ->
+    @object == null
+
+  mock : (args...) ->
+    @originalMethod.apply(object, args)
+    @callCount += 1
+    @calledWith.push(args)
+
   with : (args...)->
     @expectedArgs = args
+    @
+
+  calls : (calls)->
+    @expectedCalls = calls
+    @
 
 
 expectCall = (object, method, calls) ->
   calls ?= 1
-  
+
   expectation = new Expectation({
-    object: object
-    method: method
     expectedCalls: calls
-    originalMethod: object[method]
     callCount: 0
   })
-  
-  object[method] = (args...) ->
-    expectation.originalMethod.apply(object, args)
-    expectation.callCount += 1
-    expectation.calledWith.push(args)
+
+  if arguments.length
+    expectation.originalMethod = object[method]
+    expectation.object =  object
+    expectation.method = method
+    object[method] = expectation.mock
   
   mocking.expectations.push(expectation)
-  expectation
+
+  expectation.mock
 
 stub = (object, method, fn) ->
+  if typeof fn != 'function'
+    retur = fn;
+    fn = () -> retur
+    
+
   stb = {
     object: object,
     method: method,
@@ -92,12 +109,19 @@ finishMock = () ->
 testExpectations = ->
   while mocking.expectations.length > 0
     expectation = mocking.expectations.pop()
-    equal(expectation.callCount, expectation.expectedCalls, "method #{expectation.method} should be called #{expectation.expectedCalls} times")
+
+    if expectation.isCallback()
+      equal(expectation.callCount, expectation.expectedCalls, "callback should have been called #{expectation.expectedCalls} times")
+    else
+      equal(expectation.callCount, expectation.expectedCalls, "method #{expectation.method} should be called #{expectation.expectedCalls} times")
+
     if expectation.expectedArgs
       $.each(expectation.calledWith, (i, el)->
         deepEqual(expectation.expectedArgs, el, "expected to be called with #{expectation.expectedArgs}, called with #{el}")
       )
-    expectation.object[expectation.method] = expectation.originalMethod
+
+    if !expectation.isCallback()
+      expectation.object[expectation.method] = expectation.originalMethod
   
   while mocking.stubs.length > 0
     stb = mocking.stubs.pop()

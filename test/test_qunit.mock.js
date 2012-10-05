@@ -46,6 +46,20 @@ test("basic expecting assertions", function() {
 	obj.method();
 });
 
+test('expect two calls', function(){
+	expectCall(obj, 'otherMethod', 2);
+
+	obj.otherMethod();
+	obj.otherMethod();
+});
+
+test('expect two calls', function(){
+	expectCall(obj, 'otherMethod').calls(2);
+
+	obj.otherMethod();
+	obj.otherMethod();
+});
+
 test("return method back after test", function() {
 	deepEqual(obj.otherMethod, Sample.prototype.otherMethod, "method is same as old original one");
 });
@@ -61,6 +75,11 @@ asyncTest("async mocking", function() {
 
 test("stubbing", function() {
 	stub(obj, 'method', function() {return "world"});
+	equal(obj.method(), "world");
+});
+
+test("stubb without function", function() {
+	stub(obj, 'method', "world");
 	equal(obj.method(), "world");
 });
 
@@ -84,16 +103,24 @@ test("[THIS TEST SHOULD FAIL!] given error when wrong number of call count", fun
 	});
 });
 
-module("Expected args")
+module("Expect callback");
+
+test('should callback', function(){
+	var callback = expectCall();
+
+	callback();
+});
+
+module("Expected args");
 
 test("should pass with expected invocations", function(){
-	expectCall(obj, "method").with("abc")
-	obj.method("abc")
-})
+	expectCall(obj, "method").with("abc", 10);
+	obj.method("abc", 10);
+});
 
 test("[THIS TEST SHOULD FAIL!] should fail with unexpected invocations", function(){
-	expectCall(obj, "method").with("abc")
-	obj.method()
-})
+	expectCall(obj, "method").with("abc");
+	obj.method();
+});
 
 
