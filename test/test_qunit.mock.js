@@ -34,7 +34,9 @@ Sample.prototype = {
 		setTimeout(function() {self.otherMethod()}, 300)
 	},
 	
-	otherMethod: function() {}
+	otherMethod: function() {
+		return 'blah';
+	}
 };
 
 obj = new Sample();
@@ -54,6 +56,7 @@ test('expect two calls', function(){
 });
 
 test('expect two calls', function(){
+
 	expectCall(obj, 'otherMethod').calls(2);
 
 	obj.otherMethod();
@@ -61,6 +64,7 @@ test('expect two calls', function(){
 });
 
 test("return method back after test", function() {
+	
 	deepEqual(obj.otherMethod, Sample.prototype.otherMethod, "method is same as old original one");
 });
 

@@ -32,11 +32,6 @@ class Expectation
   isCallback : () ->
     @object == null
 
-  mock : (args...) ->
-    @originalMethod.apply(object, args)
-    @callCount += 1
-    @calledWith.push(args)
-
   with : (args...)->
     @expectedArgs = args
     @
@@ -44,6 +39,10 @@ class Expectation
   calls : (calls)->
     @expectedCalls = calls
     @
+
+  undo : ()->
+    if @object?
+      @object[@method] = @originalMethod
 
 
 expectCall = (object, method, calls) ->
@@ -54,15 +53,22 @@ expectCall = (object, method, calls) ->
     callCount: 0
   })
 
+  mock = (args...) ->
+    if expectation.originalMethod
+      expectation.originalMethod.apply(object, args)
+    expectation.callCount += 1
+    expectation.calledWith.push(args)
+
+  mocking.expectations.push(expectation)
+  
   if arguments.length
     expectation.originalMethod = object[method]
     expectation.object =  object
     expectation.method = method
-    object[method] = expectation.mock
-  
-  mocking.expectations.push(expectation)
+    object[method] = mock
+    return expectation
 
-  expectation.mock
+  mock
 
 stub = (object, method, fn) ->
   if typeof fn != 'function'
@@ -114,15 +120,13 @@ testExpectations = ->
       equal(expectation.callCount, expectation.expectedCalls, "callback should have been called #{expectation.expectedCalls} times")
     else
       equal(expectation.callCount, expectation.expectedCalls, "method #{expectation.method} should be called #{expectation.expectedCalls} times")
+      expectation.undo();
 
     if expectation.expectedArgs
       $.each(expectation.calledWith, (i, el)->
         deepEqual(expectation.expectedArgs, el, "expected to be called with #{expectation.expectedArgs}, called with #{el}")
       )
 
-    if !expectation.isCallback()
-      expectation.object[expectation.method] = expectation.originalMethod
-  
   while mocking.stubs.length > 0
     stb = mocking.stubs.pop()
     stb.object[stb.method] = stb.original
