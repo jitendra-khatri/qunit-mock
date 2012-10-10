@@ -150,4 +150,4 @@ window.asyncTest = (testName, expected, callback) ->
     callback = expected
     expected = 0
   
-  QUnit.test(testName, expected, mocked(callback), true)
+  QUnit.test.call(QUnit.current_testEnvironment, testName, expected, mocked(callback), true)
