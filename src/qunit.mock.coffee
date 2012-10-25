@@ -61,12 +61,14 @@ expectCall = (object, method, calls) ->
 
   mocking.expectations.push(expectation)
   
-  if arguments.length
+  if method != undefined
     expectation.originalMethod = object[method]
     expectation.object =  object
     expectation.method = method
     object[method] = mock
     return expectation
+  else
+    expectation.calls(object||1)
 
   mock
 
@@ -96,7 +98,7 @@ mock = (test) ->
   mocking = mk
   stack.push(mk)
   
-  test.call(QUnit.current_testEnvironment)
+  test.call(this)
   
   unless QUnit.config.blocking
     finishMock()
@@ -104,7 +106,7 @@ mock = (test) ->
     QUnit.config.queue.unshift finishMock
 
 mocked = (fn) ->
-  -> mock(fn)
+  -> mock.call(this, fn)
 
 finishMock = () ->
   testExpectations()

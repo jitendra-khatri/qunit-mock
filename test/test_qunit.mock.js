@@ -41,6 +41,18 @@ Sample.prototype = {
 
 obj = new Sample();
 
+module("Async Test", {
+	setup:function(){
+		this.delay = 1;
+	}
+});
+
+test("async delay", 0, function(){
+
+	stop();
+	setTimeout(start, 500);
+});
+
 module("QUnit Mock", {
 	setup:function(){
 		this.contextCheck = true;
