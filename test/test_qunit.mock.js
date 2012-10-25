@@ -41,11 +41,29 @@ Sample.prototype = {
 
 obj = new Sample();
 
-module("QUnit Mock");
+module("Async Test", {
+	setup:function(){
+		this.delay = 1;
+	}
+});
+
+test("async delay", 0, function(){
+
+	stop();
+	setTimeout(start, 500);
+});
+
+module("QUnit Mock", {
+	setup:function(){
+		this.contextCheck = true;
+	}
+});
 
 test("basic expecting assertions", function() {
 	expectCall(obj, 'otherMethod');
 	obj.method();
+	
+	ok(this.contextCheck, "correct context");
 });
 
 test('expect two calls', function(){
@@ -69,12 +87,14 @@ test("return method back after test", function() {
 });
 
 asyncTest("async mocking", function() {
-	expect(1)
+	expect(2)
 	expectCall(obj, 'otherMethod');
 	obj.callAsync();
 	setTimeout(function() {
 		start();
 	}, 500);
+
+	ok(this.contextCheck, "correct context");
 });
 
 test("stubbing", function() {
