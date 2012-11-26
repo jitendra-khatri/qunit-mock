@@ -24,9 +24,9 @@ stack = []
 class Expectation
   
   constructor : (args)->
-    $.each(args, (i, el)=>
-      this[i] = el
-    )
+    for i, arg of args
+      @[i] = arg
+    
     @calledWith = []
 
   isCallback : () ->
@@ -125,9 +125,9 @@ testExpectations = ->
       expectation.undo();
 
     if expectation.expectedArgs
-      $.each(expectation.calledWith, (i, el)->
+      for i, el of expectation.calledWith
         deepEqual(expectation.expectedArgs, el, "expected to be called with #{expectation.expectedArgs}, called with #{el}")
-      )
+      
 
   while mocking.stubs.length > 0
     stb = mocking.stubs.pop()
